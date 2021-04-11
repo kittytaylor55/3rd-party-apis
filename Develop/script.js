@@ -1,103 +1,63 @@
-// save reference to important DOM elements
-var timeDisplayEl = $('#time-display');
-var projectDisplayEl = $('#project-display');
-var projectModalEl = $('#project-modal');
-var projectFormEl = $('#project-form');
-var projectNameInputEl = $('#project-name-input');
-var projectTypeInputEl = $('#project-type-input');
-var hourlyRateInputEl = $('#hourly-rate-input');
-var dueDateInputEl = $('#due-date-input');
 
-// handle displaying the time
+//display date and time
+var timeDisplayEl = $('#time-display');
 function displayTime() {
   var rightNow = moment().format('MMM DD, YYYY [at] hh:mm:ss a');
   timeDisplayEl.text(rightNow);
 }
+var idsCollection = ["#9", "#10", "#11", "#12", "#1", "#2", "#3", "#4",  "#5"];
+var timeSlotCollection = ["09:00:00", "10:00:00", "11:00:00", "12:00:00", "13:00:00",  "14:00:00",  "15:00:00",  "16:00:00",  "17:00:00"];
+var shiftedTimeSlotCollection = ["10:00:00", "11:00:00", "12:00:00", "13:00:00",  "14:00:00",  "15:00:00",  "16:00:00",  "17:00:00",  "18:00:00"];
 
-// handle printing project data to the page
-function printProjectData(name, type, hourlyRate, dueDate) {
-  var projectRowEl = $('<tr>');
+var  plannerContent = [];
+var getLocalStorageData = JSON.parse(localStorage.getItem("planner-items"));
 
-  var projectNameTdEl = $('<td>').addClass('p-2').text(name);
-
-  var projectTypeTdEl = $('<td>').addClass('p-2').text(type);
-
-  var rateTdEl = $('<td>').addClass('p-2').text(hourlyRate);
-
-  var dueDateTdEl = $('<td>').addClass('p-2').text(dueDate);
-
-  var daysToDate = moment(dueDate, 'MM/DD/YYYY').diff(moment(), 'days');
-  var daysLeftTdEl = $('<td>').addClass('p-2').text(daysToDate);
-
-  var totalEarnings = calculateTotalEarnings(hourlyRate, daysToDate);
-
-  // You can also chain methods onto new lines to keep code clean
-  var totalTdEl = $('<td>')
-    .addClass('p-2')
-    .text('$' + totalEarnings);
-
-  var deleteProjectBtn = $('<td>')
-    .addClass('p-2 delete-project-btn text-center')
-    .text('X');
-
-  // By listing each `<td>` variable as an argument, each one will be appended in that order
-  projectRowEl.append(
-    projectNameTdEl,
-    projectTypeTdEl,
-    rateTdEl,
-    dueDateTdEl,
-    daysLeftTdEl,
-    totalTdEl,
-    deleteProjectBtn
-  );
-
-  projectDisplayEl.append(projectRowEl);
-
-  projectModalEl.modal('hide');
+if (getLocalStorageData !== null) {
+ plannerContent = getLocalStorageData;
 }
 
-function calculateTotalEarnings(rate, days) {
-  var dailyTotal = rate * 8;
-  var total = dailyTotal * days;
-  return total;
+for (var i=0;i<idsCollection.length; i++) {
+  var descriptionEl = $(idsCollection[i]);
+  var buttonEl = descriptionEl.parent().parent().find("button");
+
+  if ((moment().format('MMMM Do YYYY, HH:mm:ss')) < (moment().format('MMMM Do YYYY') +  ", " + timeSlotCollection[i])) { 
+    descriptionEl.attr("class", "future");
+    plannerContent.forEach(function(item) {
+      if (idsCollection[i] === ("#" + (item["input-id"]))) {
+        descriptionEl.val(item["input-value"]);
+      }
+    });
+  }
+  else if (((moment().format('MMMM Do YYYY, HH:mm:ss')) >= (moment().format('MMMM Do YYYY') +  ", " + timeSlotCollection[i])) &&  
+          ((moment().format('MMMM Do YYYY, HH:mm:ss')) < (moment().format('MMMM Do YYYY') +  ", " + shiftedTimeSlotCollection[i])))
+  {
+    descriptionEl.attr("class", "present");
+    $(".present").attr("disabled", "disabled");
+    buttonEl.attr("disabled", true);
+    plannerContent.forEach(function(item) {
+      if (idsCollection[i] === ("#" + item["input-id"])) {
+        descriptionEl.val(item["input-value"]);
+      }
+    });
+  }
+  else if ((moment().format('MMMM Do YYYY, HH:mm:ss')) > (moment().format('MMMM Do YYYY') +  ", " + timeSlotCollection[i])) {
+    descriptionEl.attr("class", "past");
+    $(".past").attr("disabled", "disabled");
+    buttonEl.attr("disabled", true);
+  }
 }
 
-function handleDeleteProject(event) {
-  console.log(event.target);
-  var btnClicked = $(event.target);
-  btnClicked.parent('tr').remove();
-}
-
-// handle project form submission
-function handleProjectFormSubmit(event) {
+$("button").on("click", function() {
   event.preventDefault();
-
-  var projectName = projectNameInputEl.val().trim();
-  var projectType = projectTypeInputEl.val().trim();
-  var hourlyRate = hourlyRateInputEl.val().trim();
-  var dueDate = dueDateInputEl.val().trim();
-
-  printProjectData(projectName, projectType, hourlyRate, dueDate);
-
-  projectFormEl[0].reset();
-}
-
-projectFormEl.on('submit', handleProjectFormSubmit);
-projectDisplayEl.on('click', '.delete-project-btn', handleDeleteProject);
-dueDateInputEl.datepicker({ minDate: 1 });
-
-setInterval(displayTime, 1000);
-
-
-jQuery(document).ready(function(){ 
-  iCal = new Web2Cal( "calendarContainer",
-         { 
-              loadEvents: function(startDate, endDate, viewName){ 
-                              /* Get events from any source. This can be a PHP/Java/.NET/Facebook or any other source. Once you have the data, invoke ical.render(data).*/
-                             ical.render( eventSource.getEvents() ); 
-                          } 
-             ,onNewEvent: function(event, groups, allDay){ } 
-             ,onUpdateEvent: function(event){ }
-         });
-         iCal.build(); 
-  }); 
+  var container = $(this).parent().parent();  
+  var inputValue = container.find("input").val();
+  var inputId = container.find("input").attr("id");
+  var textObj = {
+    "input-id": inputId,
+    "input-value": inputValue };
+  
+  if (textObj["input-value"] !== "") {
+    plannerContent.push(textObj);
+    localStorage.setItem("planner-items", JSON.stringify(plannerContent));
+  }
+});
