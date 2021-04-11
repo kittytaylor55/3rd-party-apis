@@ -2,7 +2,7 @@
 Website link:
 https://kittytaylor55.github.io/3rd-party-apis/Develop/index.html
 
-Githubv Link:
+Github Link:
 https://github.com/kittytaylor55/3rd-party-apis.git
 
 --Introduction - the project's aim--
