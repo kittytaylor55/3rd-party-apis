@@ -2,8 +2,8 @@
 //display date and time
 var timeDisplayEl = $('#time-display');
 function displayTime() {
-  var rightNow = moment().format('MMM DD, YYYY [at] hh:mm:ss a');
-  timeDisplayEl.text(rightNow);
+var rightNow = moment().format('MMM DD, YYYY [at] hh:mm:ss a');
+timeDisplayEl.text(rightNow);
 }
 var idsCollection = ["#9", "#10", "#11", "#12", "#1", "#2", "#3", "#4",  "#5"];
 var timeSlotCollection = ["09:00:00", "10:00:00", "11:00:00", "12:00:00", "13:00:00",  "14:00:00",  "15:00:00",  "16:00:00",  "17:00:00"];
@@ -60,4 +60,7 @@ $("button").on("click", function() {
     plannerContent.push(textObj);
     localStorage.setItem("planner-items", JSON.stringify(plannerContent));
   }
+
 });
+
+setInterval(displayTime, 1000);
